@@ -1,0 +1,63 @@
+#Deployment
+#kubectl expose deployment k8s-notes-api --type=NodePort --port=80
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-notes-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: k8s-notes-api
+  template:
+    metadata:
+      labels:
+        app: k8s-notes-api
+    spec:
+      containers:
+        - name: k8s-notes-api
+          image: 19820401/k8s-notes-api:v2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+          - name: APP_ENV
+            valueFrom:
+              configMapKeyRef:
+                name: k8s-notes-api-config
+                key: APP_ENV
+          - name: LOG_LEVEL
+            valueFrom:
+              configMapKeyRef:
+                name: k8s-notes-api-config
+                key: LOG_LEVEL
+          - name: APP_VERSION
+            valueFrom:
+              configMapKeyRef:
+                name: k8s-notes-api-config
+                key: APP_VERSION
+          - name: APP_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: k8s-notes-api-config
+                key: APP_PORT
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 5          
+
